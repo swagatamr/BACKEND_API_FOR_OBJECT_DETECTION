@@ -1,0 +1,155 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOv8 Object Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .image-container { margin: 20px 0; text-align: center; }
+        .image-container img { max-width: 100%; height: auto; }
+        #loading { display: none; text-align: center; margin: 20px 0; }
+        .results-container { margin-top: 20px; display: none; }
+        .download-links { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">YOLOv8 Object Detection</h1>
+        
+        <!-- Upload Form -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Select Image</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confidence" class="form-label">Confidence Threshold</label>
+                                <input type="range" class="form-range" id="confidence" name="confidence" 
+                                       min="0" max="1" step="0.05" value="0.25">
+                                <div class="text-center" id="confidenceValue">0.25</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Detect Objects</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Processing image...</p>
+        </div>
+
+        <!-- Results Container -->
+        <div class="results-container" id="results">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Original Image</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="image-container">
+                                <img id="originalImage" src="" alt="Original Image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Detected Objects</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="image-container">
+                                <img id="annotatedImage" src="" alt="Detected Objects">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Detection Results</h5>
+                </div>
+                <div class="card-body">
+                    <pre id="detectionResults"></pre>
+                </div>
+            </div>
+
+            <div class="download-links text-center">
+                <button class="btn btn-success me-2" onclick="downloadImage('original')">Download Original Image</button>
+                <button class="btn btn-success me-2" onclick="downloadImage('annotated')">Download Annotated Image</button>
+                <button class="btn btn-info" onclick="downloadJSON()">Download JSON Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('confidence').addEventListener('input', function(e) {
+            document.getElementById('confidenceValue').textContent = e.target.value;
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+
+            try {
+                loading.style.display = 'block';
+                results.style.display = 'none';
+
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('originalImage').src = `data:image/jpeg;base64,${data.original_image}`;
+                    document.getElementById('annotatedImage').src = `data:image/jpeg;base64,${data.annotated_image}`;
+                    document.getElementById('detectionResults').textContent = 
+                        JSON.stringify(data.detection_data, null, 2);
+
+                    window.originalFilename = data.original_filename;
+                    window.annotatedFilename = data.annotated_filename;
+                    window.jsonFilename = data.json_filename;
+
+                    results.style.display = 'block';
+                } else {
+                    alert(data.error || 'Error processing image');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function downloadImage(type) {
+            const filename = type === 'original' ? window.originalFilename : window.annotatedFilename;
+            window.location.href = `/download/${filename}`;
+        }
+
+        function downloadJSON() {
+            window.location.href = `/download/${window.jsonFilename}`;
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
