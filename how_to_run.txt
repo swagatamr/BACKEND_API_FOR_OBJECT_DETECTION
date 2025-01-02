@@ -1,0 +1,88 @@
+Create the project structure:
+
+backend_task/
+│
+├── docker-compose.yml
+│
+├── streamlit_app/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── app.py
+│   ├── uploads/
+│   └── detections/
+│
+├── fastapi_app/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── main.py
+│   ├── static/
+│   │   ├── uploads/
+│   │   └── detections/
+│   └── templates/
+│       └── index.html
+│
+└── flask_app/
+    ├── Dockerfile
+    ├── requirements.txt
+    ├── app.py
+    ├── static/
+    │   ├── uploads/
+    │   └── detections/
+    └── templates/
+        └── index.html
+
+mkdir backend_task
+cd backend_task
+
+# Create directories for each implementation
+mkdir streamlit_app fastapi_app flask_app
+
+# Create subdirectories
+mkdir -p streamlit_app/{uploads,detections}
+mkdir -p fastapi_app/static/{uploads,detections}
+mkdir -p flask_app/static/{uploads,detections}
+
+Copy the respective files:
+
+
+Place the Dockerfiles in their respective directories
+Create requirements.txt files in each directory
+Copy your application code to the appropriate directories
+
+
+Build and run using docker-compose:
+
+# Build all containers
+docker-compose build
+
+# Run all services
+docker-compose up -d
+
+# Run specific service
+docker-compose up -d streamlit
+
+
+Create directories and files for Streamlit:
+
+mkdir -p streamlit_app/{uploads,detections}
+touch streamlit_app/Dockerfile
+touch streamlit_app/requirements.txt
+touch streamlit_app/app.py
+
+Create directories and files for FastAPI:
+
+mkdir -p fastapi_app/static/{uploads,detections}
+mkdir -p fastapi_app/templates
+touch fastapi_app/Dockerfile
+touch fastapi_app/requirements.txt
+touch fastapi_app/main.py
+touch fastapi_app/templates/index.html
+
+Create directories and files for Flask:
+
+mkdir -p flask_app/static/{uploads,detections}
+mkdir -p flask_app/templates
+touch flask_app/Dockerfile
+touch flask_app/requirements.txt
+touch flask_app/app.py
+touch flask_app/templates/index.html
